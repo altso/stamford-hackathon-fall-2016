@@ -9,8 +9,7 @@
 	Based on Papa Parse v4.0.7 by Matt Holt
 	https://github.com/mholt/PapaParse
 */
-(function(global)
-{
+(function (global) {
 
 	// A configuration object from which to draw default settings
 	var DEFAULTS = {
@@ -37,15 +36,14 @@
 	Baby.DefaultDelimiter = ",";		// Used if not specified and detection fails
 	Baby.Parser = Parser;				// For testing/dev only
 	Baby.ParserHandle = ParserHandle;	// For testing/dev only
-	
+
 	var fs = fs || require('fs')
-	
-	function ParseFiles(_input, _config)
-	{
+
+	function ParseFiles(_input, _config) {
 		if (Array.isArray(_input)) {
 			var results = [];
-			_input.forEach(function(input) {
-				if(typeof input === 'object')
+			_input.forEach(function (input) {
+				if (typeof input === 'object')
 					results.push(ParseFiles(input.file, input.config));
 				else
 					results.push(ParseFiles(input, _config));
@@ -76,8 +74,7 @@
 		}
 	}
 
-	function CsvToJson(_input, _config)
-	{
+	function CsvToJson(_input, _config) {
 		var config = copyAndValidateConfig(_config);
 		var ph = new ParserHandle(config);
 		var results = ph.parse(_input);
@@ -87,8 +84,7 @@
 
 
 
-	function JsonToCsv(_input, _config)
-	{
+	function JsonToCsv(_input, _config) {
 		var _output = "";
 		var _fields = [];
 
@@ -102,24 +98,21 @@
 		if (typeof _input === 'string')
 			_input = JSON.parse(_input);
 
-		if (_input instanceof Array)
-		{
+		if (_input instanceof Array) {
 			if (!_input.length || _input[0] instanceof Array)
 				return serialize(null, _input);
 			else if (typeof _input[0] === 'object')
 				return serialize(objectKeys(_input[0]), _input);
 		}
-		else if (typeof _input === 'object')
-		{
+		else if (typeof _input === 'object') {
 			if (typeof _input.data === 'string')
 				_input.data = JSON.parse(_input.data);
 
-			if (_input.data instanceof Array)
-			{
+			if (_input.data instanceof Array) {
 				if (!_input.fields)
 					_input.fields = _input.data[0] instanceof Array
-									? _input.fields
-									: objectKeys(_input.data[0]);
+						? _input.fields
+						: objectKeys(_input.data[0]);
 
 				if (!(_input.data[0] instanceof Array) && typeof _input.data[0] !== 'object')
 					_input.data = [_input.data];	// handles input like [1,2,3] or ["asdf"]
@@ -132,15 +125,13 @@
 		throw "exception: Unable to serialize unrecognized input";
 
 
-		function unpackConfig()
-		{
+		function unpackConfig() {
 			if (typeof _config !== 'object')
 				return;
 
 			if (typeof _config.delimiter === 'string'
 				&& _config.delimiter.length == 1
-				&& Baby.BAD_DELIMITERS.indexOf(_config.delimiter) == -1)
-			{
+				&& Baby.BAD_DELIMITERS.indexOf(_config.delimiter) == -1) {
 				_delimiter = _config.delimiter;
 			}
 
@@ -154,8 +145,7 @@
 
 
 		// Turns an object's keys into an array
-		function objectKeys(obj)
-		{
+		function objectKeys(obj) {
 			if (typeof obj !== 'object')
 				return [];
 			var keys = [];
@@ -165,8 +155,7 @@
 		}
 
 		// The double for loop that iterates the data and writes out a CSV string including header row
-		function serialize(fields, data)
-		{
+		function serialize(fields, data) {
 			var csv = "";
 
 			if (typeof fields === 'string')
@@ -178,10 +167,8 @@
 			var dataKeyedByField = !(data[0] instanceof Array);
 
 			// If there a header row, write it first
-			if (hasHeader)
-			{
-				for (var i = 0; i < fields.length; i++)
-				{
+			if (hasHeader) {
+				for (var i = 0; i < fields.length; i++) {
 					if (i > 0)
 						csv += _delimiter;
 					csv += safe(fields[i], i);
@@ -191,12 +178,10 @@
 			}
 
 			// Then write out the data
-			for (var row = 0; row < data.length; row++)
-			{
+			for (var row = 0; row < data.length; row++) {
 				var maxCol = hasHeader ? fields.length : data[row].length;
 
-				for (var col = 0; col < maxCol; col++)
-				{
+				for (var col = 0; col < maxCol; col++) {
 					if (col > 0)
 						csv += _delimiter;
 					var colIdx = hasHeader && dataKeyedByField ? fields[col] : col;
@@ -211,25 +196,23 @@
 		}
 
 		// Encloses a value around quotes if needed (makes a value safe for CSV insertion)
-		function safe(str, col)
-		{
+		function safe(str, col) {
 			if (typeof str === "undefined" || str === null)
 				return "";
 
 			str = str.toString().replace(/"/g, '""');
 
 			var needsQuotes = (typeof _quotes === 'boolean' && _quotes)
-							|| (_quotes instanceof Array && _quotes[col])
-							|| hasAny(str, Baby.BAD_DELIMITERS)
-							|| str.indexOf(_delimiter) > -1
-							|| str.charAt(0) == ' '
-							|| str.charAt(str.length - 1) == ' ';
+				|| (_quotes instanceof Array && _quotes[col])
+				|| hasAny(str, Baby.BAD_DELIMITERS)
+				|| str.indexOf(_delimiter) > -1
+				|| str.charAt(0) == ' '
+				|| str.charAt(str.length - 1) == ' ';
 
 			return needsQuotes ? '"' + str + '"' : str;
 		}
 
-		function hasAny(str, substrings)
-		{
+		function hasAny(str, substrings) {
 			for (var i = 0; i < substrings.length; i++)
 				if (str.indexOf(substrings[i]) > -1)
 					return true;
@@ -243,8 +226,7 @@
 
 
 	// Use one ParserHandle per entire CSV file or string
-	function ParserHandle(_config)
-	{
+	function ParserHandle(_config) {
 		// One goal is to minimize the use of regular expressions...
 		var FLOAT = /^\s*-?(\d*\.?\d+|\d+\.?\d*)(e[-+]?\d+)?\s*$/i;
 
@@ -261,11 +243,9 @@
 			meta: {}
 		};
 
-		if (isFunction(_config.step))
-		{
+		if (isFunction(_config.step)) {
 			var userStep = _config.step;
-			_config.step = function(results)
-			{
+			_config.step = function (results) {
 				_results = results;
 
 				if (needsHeaderRow())
@@ -287,19 +267,16 @@
 			};
 		}
 
-		this.parse = function(input)
-		{
+		this.parse = function (input) {
 			if (!_config.newline)
 				_config.newline = guessLineEndings(input);
 
 			_delimiterError = false;
-			if (!_config.delimiter)
-			{
+			if (!_config.delimiter) {
 				var delimGuess = guessDelimiter(input);
 				if (delimGuess.successful)
 					_config.delimiter = delimGuess.bestDelimiter;
-				else
-				{
+				else {
 					_delimiterError = true;	// add error after parsing (otherwise it would be overwritten)
 					_config.delimiter = Baby.DefaultDelimiter;
 				}
@@ -319,20 +296,17 @@
 			return _paused ? { meta: { paused: true } } : (_results || { meta: { paused: false } });
 		};
 
-		this.pause = function()
-		{
+		this.pause = function () {
 			_paused = true;
 			_parser.abort();
 			_input = _input.substr(_parser.getCharIndex());
 		};
 
-		this.resume = function()
-		{
+		this.resume = function () {
 			_paused = false;
 			_parser = new Parser(_config);
 			_parser.parse(_input);
-			if (!_paused)
-			{
+			if (!_paused) {
 				if (self.streamer && !self.streamer.finished())
 					self.streamer.resume();		// more of the file yet to come
 				else if (isFunction(_config.complete))
@@ -340,24 +314,20 @@
 			}
 		};
 
-		this.abort = function()
-		{
+		this.abort = function () {
 			_parser.abort();
 			if (isFunction(_config.complete))
 				_config.complete(_results);
 			_input = "";
 		};
 
-		function processResults()
-		{
-			if (_results && _delimiterError)
-			{
-				addError("Delimiter", "UndetectableDelimiter", "Unable to auto-detect delimiting character; defaulted to '"+Baby.DefaultDelimiter+"'");
+		function processResults() {
+			if (_results && _delimiterError) {
+				addError("Delimiter", "UndetectableDelimiter", "Unable to auto-detect delimiting character; defaulted to '" + Baby.DefaultDelimiter + "'");
 				_delimiterError = false;
 			}
 
-			if (_config.skipEmptyLines)
-			{
+			if (_config.skipEmptyLines) {
 				for (var i = 0; i < _results.data.length; i++)
 					if (_results.data[i].length == 1 && _results.data[i][0] == "")
 						_results.data.splice(i--, 1);
@@ -369,13 +339,11 @@
 			return applyHeaderAndDynamicTyping();
 		}
 
-		function needsHeaderRow()
-		{
+		function needsHeaderRow() {
 			return _config.header && _fields.length == 0;
 		}
 
-		function fillHeaderFields()
-		{
+		function fillHeaderFields() {
 			if (!_results)
 				return;
 			for (var i = 0; needsHeaderRow() && i < _results.data.length; i++)
@@ -384,19 +352,15 @@
 			_results.data.splice(0, 1);
 		}
 
-		function applyHeaderAndDynamicTyping()
-		{
+		function applyHeaderAndDynamicTyping() {
 			if (!_results || (!_config.header && !_config.dynamicTyping))
 				return _results;
 
-			for (var i = 0; i < _results.data.length; i++)
-			{
+			for (var i = 0; i < _results.data.length; i++) {
 				var row = {};
 
-				for (var j = 0; j < _results.data[i].length; j++)
-				{
-					if (_config.dynamicTyping)
-					{
+				for (var j = 0; j < _results.data[i].length; j++) {
+					if (_config.dynamicTyping) {
 						var value = _results.data[i][j];
 						if (value == "true" || value === "TRUE")
 							_results.data[i][j] = true;
@@ -406,10 +370,8 @@
 							_results.data[i][j] = tryParseFloat(value);
 					}
 
-					if (_config.header)
-					{
-						if (j >= _fields.length)
-						{
+					if (_config.header) {
+						if (j >= _fields.length) {
 							if (!row["__parsed_extra"])
 								row["__parsed_extra"] = [];
 							row["__parsed_extra"].push(_results.data[i][j]);
@@ -419,8 +381,7 @@
 					}
 				}
 
-				if (_config.header)
-				{
+				if (_config.header) {
 					_results.data[i] = row;
 					if (j > _fields.length)
 						addError("FieldMismatch", "TooManyFields", "Too many fields: expected " + _fields.length + " fields but parsed " + j, i);
@@ -434,13 +395,11 @@
 			return _results;
 		}
 
-		function guessDelimiter(input)
-		{
+		function guessDelimiter(input) {
 			var delimChoices = [",", "\t", "|", ";", Baby.RECORD_SEP, Baby.UNIT_SEP];
 			var bestDelim, bestDelta, fieldCountPrevRow;
 
-			for (var i = 0; i < delimChoices.length; i++)
-			{
+			for (var i = 0; i < delimChoices.length; i++) {
 				var delim = delimChoices[i];
 				var delta = 0, avgFieldCount = 0;
 				fieldCountPrevRow = undefined;
@@ -450,18 +409,15 @@
 					preview: 10
 				}).parse(input);
 
-				for (var j = 0; j < preview.data.length; j++)
-				{
+				for (var j = 0; j < preview.data.length; j++) {
 					var fieldCount = preview.data[j].length;
 					avgFieldCount += fieldCount;
 
-					if (typeof fieldCountPrevRow === 'undefined')
-					{
+					if (typeof fieldCountPrevRow === 'undefined') {
 						fieldCountPrevRow = fieldCount;
 						continue;
 					}
-					else if (fieldCount > 1)
-					{
+					else if (fieldCount > 1) {
 						delta += Math.abs(fieldCount - fieldCountPrevRow);
 						fieldCountPrevRow = fieldCount;
 					}
@@ -470,8 +426,7 @@
 				avgFieldCount /= preview.data.length;
 
 				if ((typeof bestDelta === 'undefined' || delta < bestDelta)
-					&& avgFieldCount > 1.99)
-				{
+					&& avgFieldCount > 1.99) {
 					bestDelta = delta;
 					bestDelim = delim;
 				}
@@ -485,9 +440,8 @@
 			}
 		}
 
-		function guessLineEndings(input)
-		{
-			input = input.substr(0, 1024*1024);	// max length 1 MB
+		function guessLineEndings(input) {
+			input = input.substr(0, 1024 * 1024);	// max length 1 MB
 
 			var r = input.split('\r');
 
@@ -495,8 +449,7 @@
 				return '\n';
 
 			var numWithN = 0;
-			for (var i = 0; i < r.length; i++)
-			{
+			for (var i = 0; i < r.length; i++) {
 				if (r[i][0] == '\n')
 					numWithN++;
 			}
@@ -504,14 +457,12 @@
 			return numWithN >= r.length / 2 ? '\r\n' : '\r';
 		}
 
-		function tryParseFloat(val)
-		{
+		function tryParseFloat(val) {
 			var isNumber = FLOAT.test(val);
 			return isNumber ? parseFloat(val) : val;
 		}
 
-		function addError(type, code, msg, row)
-		{
+		function addError(type, code, msg, row) {
 			_results.errors.push({
 				type: type,
 				code: code,
@@ -527,8 +478,7 @@
 
 
 	// The core parser implements speedy and correct CSV parsing
-	function Parser(config)
-	{
+	function Parser(config) {
 		// Unpack the config object
 		config = config || {};
 		var delim = config.delimiter;
@@ -561,8 +511,7 @@
 		var cursor = 0;
 		var aborted = false;
 
-		this.parse = function(input)
-		{
+		this.parse = function (input) {
 			// For some reason, in Chrome, this speeds things up (!?)
 			if (typeof input !== 'string')
 				throw "Input must be a string";
@@ -582,25 +531,21 @@
 			if (!input)
 				return returnable();
 
-			if (fastMode)
-			{
+			if (fastMode) {
 				// Fast mode assumes there are no quoted fields in the input
 				var rows = input.split(newline);
-				for (var i = 0; i < rows.length; i++)
-				{
+				for (var i = 0; i < rows.length; i++) {
 					if (comments && rows[i].substr(0, commentsLen) == comments)
 						continue;
-					if (stepIsFunction)
-					{
-						data = [ rows[i].split(delim) ];
+					if (stepIsFunction) {
+						data = [rows[i].split(delim)];
 						doStep();
 						if (aborted)
 							return returnable();
 					}
 					else
 						data.push(rows[i].split(delim));
-					if (preview && i >= preview)
-					{
+					if (preview && i >= preview) {
 						data = data.slice(0, preview);
 						return returnable(true);
 					}
@@ -612,24 +557,20 @@
 			var nextNewline = input.indexOf(newline, cursor);
 
 			// Parser loop
-			for (;;)
-			{
+			for (; ;) {
 				// Field has opening quote
-				if (input[cursor] == '"')
-				{
+				if (input[cursor] == '"') {
 					// Start our search for the closing quote where the cursor is
 					var quoteSearch = cursor;
 
 					// Skip the opening quote
 					cursor++;
 
-					for (;;)
-					{
+					for (; ;) {
 						// Find closing quote
-						var quoteSearch = input.indexOf('"', quoteSearch+1);
+						var quoteSearch = input.indexOf('"', quoteSearch + 1);
 
-						if (quoteSearch === -1)
-						{
+						if (quoteSearch === -1) {
 							// No closing quote... what a pity
 							errors.push({
 								type: "Quotes",
@@ -641,8 +582,7 @@
 							return finish();
 						}
 
-						if (quoteSearch === inputLen-1)
-						{
+						if (quoteSearch === inputLen - 1) {
 							// Closing quote at EOF
 							row.push(input.substring(cursor, quoteSearch).replace(/""/g, '"'));
 							data.push(row);
@@ -652,14 +592,12 @@
 						}
 
 						// If this quote is escaped, it's part of the data; skip it
-						if (input[quoteSearch+1] == '"')
-						{
+						if (input[quoteSearch + 1] == '"') {
 							quoteSearch++;
 							continue;
 						}
 
-						if (input[quoteSearch+1] == delim)
-						{
+						if (input[quoteSearch + 1] == delim) {
 							// Closing quote followed by delimiter
 							row.push(input.substring(cursor, quoteSearch).replace(/""/g, '"'));
 							cursor = quoteSearch + 1 + delimLen;
@@ -668,20 +606,18 @@
 							break;
 						}
 
-						if (input.substr(quoteSearch+1, newlineLen) === newline)
-						{
+						if (input.substr(quoteSearch + 1, newlineLen) === newline) {
 							// Closing quote followed by newline
 							row.push(input.substring(cursor, quoteSearch).replace(/""/g, '"'));
 							saveRow(quoteSearch + 1 + newlineLen);
 							nextDelim = input.indexOf(delim, cursor);	// because we may have skipped the nextDelim in the quoted field
 
-							if (stepIsFunction)
-							{
+							if (stepIsFunction) {
 								doStep();
 								if (aborted)
 									return returnable();
 							}
-							
+
 							if (preview && data.length >= preview)
 								return returnable(true);
 
@@ -693,8 +629,7 @@
 				}
 
 				// Comment found at start of new line
-				if (comments && row.length === 0 && input.substr(cursor, commentsLen) === comments)
-				{
+				if (comments && row.length === 0 && input.substr(cursor, commentsLen) === comments) {
 					if (nextNewline == -1)	// Comment ends at EOF
 						return returnable();
 					cursor = nextNewline + newlineLen;
@@ -704,8 +639,7 @@
 				}
 
 				// Next delimiter comes before next newline, so we've reached end of field
-				if (nextDelim !== -1 && (nextDelim < nextNewline || nextNewline === -1))
-				{
+				if (nextDelim !== -1 && (nextDelim < nextNewline || nextNewline === -1)) {
 					row.push(input.substring(cursor, nextDelim));
 					cursor = nextDelim + delimLen;
 					nextDelim = input.indexOf(delim, cursor);
@@ -713,13 +647,11 @@
 				}
 
 				// End of row
-				if (nextNewline !== -1)
-				{
+				if (nextNewline !== -1) {
 					row.push(input.substring(cursor, nextNewline));
 					saveRow(nextNewline + newlineLen);
 
-					if (stepIsFunction)
-					{
+					if (stepIsFunction) {
 						doStep();
 						if (aborted)
 							return returnable();
@@ -740,8 +672,7 @@
 
 			// Appends the remaining input from cursor to the end into
 			// row, saves the row, calls step, and returns the results.
-			function finish()
-			{
+			function finish() {
 				row.push(input.substr(cursor));
 				data.push(row);
 				cursor = inputLen;	// important in case parsing is paused
@@ -754,8 +685,7 @@
 			// to newCursor and finds the nextNewline. The caller should
 			// take care to execute user's step function and check for
 			// preview and end parsing if necessary.
-			function saveRow(newCursor)
-			{
+			function saveRow(newCursor) {
 				data.push(row);
 				row = [];
 				cursor = newCursor;
@@ -763,8 +693,7 @@
 			}
 
 			// Returns an object with the results, errors, and meta.
-			function returnable(stopped)
-			{
+			function returnable(stopped) {
 				return {
 					data: data,
 					errors: errors,
@@ -778,22 +707,19 @@
 			}
 
 			// Executes the user's step function and resets data & errors.
-			function doStep()
-			{
+			function doStep() {
 				step(returnable());
 				data = [], errors = [];
 			}
 		};
 
 		// Sets the abort flag
-		this.abort = function()
-		{
+		this.abort = function () {
 			aborted = true;
 		};
 
 		// Gets the cursor position
-		this.getCharIndex = function()
-		{
+		this.getCharIndex = function () {
 			return cursor;
 		};
 	}
@@ -802,8 +728,7 @@
 
 
 	// Replaces bad config values with good, default ones
-	function copyAndValidateConfig(origConfig)
-	{
+	function copyAndValidateConfig(origConfig) {
 		if (typeof origConfig !== 'object')
 			origConfig = {};
 
@@ -843,8 +768,7 @@
 		return config;
 	}
 
-	function copy(obj)
-	{
+	function copy(obj) {
 		if (typeof obj !== 'object')
 			return obj;
 		var cpy = obj instanceof Array ? [] : {};
@@ -853,8 +777,7 @@
 		return cpy;
 	}
 
-	function isFunction(func)
-	{
+	function isFunction(func) {
 		return typeof func === 'function';
 	}
 
@@ -864,13 +787,13 @@
 
 
 	// export to Node...
-	if ( typeof module !== 'undefined' && module.exports ) {
+	if (typeof module !== 'undefined' && module.exports) {
 		module.exports = Baby;
 	}
 
 	// ...or as AMD module...
-	else if ( typeof define === 'function' && define.amd ) {
-		define( function () { return Baby; });
+	else if (typeof define === 'function' && define.amd) {
+		define(function () { return Baby; });
 	}
 
 	// ...or as browser global
