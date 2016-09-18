@@ -5,9 +5,11 @@ var stop_times = files["stop_times.txt"][0].content;
 var trips = files["trips.txt"][0].content;
 var routes = files["routes.txt"][0].content;
 
-var timetable = require("timetable.js").Timetable;
-var data = timetable.loadData(stops, stop_times, trips, routes);
-
-storage.global["timetableData"] = data;
+storage.global["timetableData"] = {
+  stops: stops,
+  stop_times: stop_times,
+  trips: trips,
+  routes: routes
+};
 return true;
   

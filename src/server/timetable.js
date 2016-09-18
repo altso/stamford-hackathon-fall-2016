@@ -1,25 +1,25 @@
 (function (root, factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
-      console.log("1");
+        console.log("1");
         // AMD
         define(['babyparse'], factory);
     } else if (typeof exports === 'object') {
-           console.log("2");
-   // CommonJS
+        console.log("2");
+        // CommonJS
         module.exports = factory(require('babyparse'));
     } else if (typeof require === 'function') {
-      // scriptr
+        // scriptr
         root.Timetable = factory(require('babyparse.js').Baby, require("document"));
-      
+
     } else {
 
-          console.log(root);
-    // Browser globals (Note: root is window)
+        console.log(root);
+        // Browser globals (Note: root is window)
         root.Timetable = factory(root.Baby);
     }
 } (this, function (baby, document) {
-	function loadData(stops, stop_times, trips, routes) {
+    function loadData(stops, stop_times, trips, routes) {
         var i, len, options = { header: true, dynamicTyping: true }, state = {};
 
         // stops
@@ -35,8 +35,8 @@
         // routes
         var routes = baby.parse(routes, options).data;
         state.routes = routes;
-      
-      return state;
+
+        return state;
     }
 
     function getNextRoutes(state, lat, lon, count, now) {
@@ -44,34 +44,50 @@
         count = count || 5;
         now = now || new Date();
 
+        console.log(now);
+
         var now_time = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var stop = getClosestStop(lat, lon, state.stops);
         var times = getNextTimes(stop.stop_id, now_time, state.stop_times, count);
-        var result = [], time, trip, route;
-        for (var i = 0, len = times.length; i < len; i++) {
+        var result = [], time, trip, route, i, len;
+        var tripMap = {}, routeMap = {};
+        for (i = 0, len = state.trips.length; i < len; i++) {
+            trip = state.trips[i];
+            if (trip.trip_id) {
+                tripMap[trip.trip_id] = trip;
+            }
+        }
+        for (i = 0, len = state.routes.length; i < len; i++) {
+            route = state.routes[i];
+            if (route.route_id) {
+                routeMap[route.route_id] = route;
+            }
+        }
+        for (i = 0, len = times.length; i < len; i++) {
             time = times[i];
-            trip = findTrip(state.trips, time.trip_id);
-          route = findRoute(trip.route_id);
+            trip = tripMap[time.trip_id];
+            route = routeMap[trip.route_id];
             result.push({
-                stop_time: time,
-                trip: trip,
-                route: route
+                route_short_name: route.route_short_name.toString(),
+                route_color: ("000000" + route.route_color.toString()).substring(route.route_color.toString().length),
+                trip_headsign: trip.trip_headsign,
+                arrival_time: time.arrival_time
             })
         }
         return result;
     }
-  
+
     function findTrip(trips, trip_id) {
-              for (var i = 0, len = trips.length; i < len; i++) {
-                if (trips[i].trip_id === trip_id) return trips[i];
-              }
-      return null;
+        for (var i = 0, len = trips.length; i < len; i++) {
+            if (trips[i].trip_id === trip_id) return trips[i];
+        }
+        return null;
     }
     function findRoute(routes, route_id) {
-              for (var i = 0, len = routes.length; i < len; i++) {
-                if (routes[i].route_id === route_id) return routes[i];
-              }
-      return null;
+        for (var i = 0, len = routes.length; i < len; i++) {
+            if (routes[i].route_id === route_id) return routes[i];
+        }
+        return null;
     }
 
     function getDistance(latitude1, longitude1, latitude2, longitude2) {
@@ -87,6 +103,8 @@
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         var d = r * c;
 
+        //console.log("Distance between (" + latitude1 + ", " + longitude1 + ") and (" + latitude2 + ", " + longitude2 + ") = " + d);
+
         return d;
     }
 
@@ -95,9 +113,14 @@
     }
 
     function getClosestStop(lat, lon, stops) {
-        var closestStop = null, closestDistance = 1000000000, distance;
+        console.log(lat);
+        console.log(lon);
+
+        var closestStop = null, closestDistance = 1000000000, distance, stop;
         for (var i = 0; i < stops.length; i++) {
-            distance = getDistance(lat, lon, stops[i].stop_lat, stops[i].stop_lon);
+            stop = stops[i];
+
+            distance = getDistance(lat, lon, stop.stop_lat, stop.stop_lon);
             if (distance < closestDistance) {
                 closestDistance = distance;
                 closestStop = stops[i];
@@ -118,20 +141,25 @@
         result.sort(function (a, b) {
             return parseTime(a.arrival_time) - parseTime(b.arrival_time);
         });
-
-        for (i = 0, len = result.length; i < len; i++) {
-            if (now_time > parseTime(result[i].arrival_time)) {
-                if (start_index < 0) {
-                    start_index = Math.max(0, i - 1);
+        /*
+                for (i = 0, len = result.length; i < len; i++) {
+                    if (now_time > parseTime(result[i].arrival_time)) {
+                        if (start_index < 0) {
+                            start_index = Math.max(0, i - 1);
+                        }
+                    }
                 }
-            }
-        }
-
-        if (start_index > 0) {
-            result.splice(0, start_index);
-        }
-        result.splice(count);
+        
+                if (start_index > 0) {
+                    result.splice(0, start_index);
+                }
+                result.splice(count);
+        */
         return result;
+    }
+
+    function getUniqueRoutes(times) {
+
     }
 
     function parseTime(time) {
@@ -144,6 +172,8 @@
     return {
         version: 1,
         loadData: loadData,
-        getNextRoutes: getNextRoutes
+        getNextRoutes: getNextRoutes,
+        getClosestStop: getClosestStop,
+        parseTime: parseTime
     }
 }));
