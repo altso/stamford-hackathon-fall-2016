@@ -1,3 +1,13 @@
+var files = storage.global;
+
+for (var v in storage.global) {
+  console.log(v);
+}
+
+  storage.global.timetableData = {};
+//delete storage.global.timetableData;
+
+var x = request.parameters["value"];
 return {
-  "data": 123
+  "data": x + "x" + x + "=" + (x * x)
 }
