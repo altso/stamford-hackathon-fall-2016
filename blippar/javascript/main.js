@@ -19,18 +19,20 @@ scene.onCreate = function()  {
 	PngWebServiceCall(lat, lon, createScene);
 }
 
-createScene = function(json) {
+createScene = function(data) {
 	scene.screen = scene.getChild("Screen");
 	scene.leftHotspot = scene.screen.getChild("LeftHotspot");
 	scene.rightHotspot = scene.screen.getChild("RightHotspot");
 
+	scene.data = data;
+	console.log(data[0].name);
 	iconCount = 5; //temp
 
 	var iconPosX = 1;
 	var iconPosY = -(2/3) * (sH/2);
 
 	//ICONS 
-	scene.icons = getIcons(iconCount);
+	scene.icons = getIcons(data);
 
 	// Adjust hotspots position and scale and define their callback function
 	scene.leftHotspot.setTranslation(-1.3 * sW/4, iconPosY, 0).setScale(sW/2);
@@ -38,27 +40,25 @@ createScene = function(json) {
 	
 	scene.rightHotspot.setTranslation(1.3 * sW/4, iconPosY, 0).setScale(sW/2);
 	scene.rightHotspot.onTouchEnd = function(id, x, y) { iconsShift('right'); }
+
+	updateSchedule();
 }
 
-function getIcons(count) {
-
+function getIcons(data) {
+	var count = data.length;
+	
     var iconPosX = (sW / (count - 1));
 	var iconPosY = -(2/3) * (sH/2);
 	icons = []
 	biggestIconIdx = parseInt(count / 2, 10);
-	for (i = 0; i < count; i++) {
-		var name = '31'+i;
-		var icon = scene.screen.addText(name)
-						.setName(name)
-						.setRotation(0,0,0)
-						.setTranslation(iconPosX * (i-2), iconPosY, 0)
-						.setFontSize(24)
-						.setCornerRadius(10)
-						.setBgColor([1, 0, 0, 1])
-						.setTextMargins([20, 5])
-						.setScale(3 - (Math.abs(i-biggestIconIdx) / (count-1)));
+	for (i = 0; i < data.length; i++) {
+		var icon = buildIcon(data[i].name, data[i].route_color)
+					.setRotation(0,0,0)
+					.setTranslation(iconPosX * (i-17) + i*250, iconPosY, 0)
+					.setScale(3 - (Math.abs(i-biggestIconIdx) / (count-1)));
 		
 		icons.push(icon);
+		scene.screen.addChild(icon);
 	}
 
 	scene.currentIconIndex = biggestIconIdx;
@@ -104,7 +104,6 @@ function iconsShift(direction) {
 	// Update the icons array
 	scene.icons = shiftedIcons;
 	
-	// DO STUFF HERE
 	updateSchedule();
 
 	// Unlock the sensors
@@ -134,31 +133,47 @@ function updateSchedule() {
 		scene.getChild("schedule").destroy();
 
 	var currentIcon = scene.icons[scene.currentIconIndex];
+	var currentText = currentIcon.getText();
 
-	var schedule = scene.addChild("Node", "schedule");
-	var icon = copyIcon(currentIcon);
-	icon.setTranslation(-sW/4, sH/4);
-	var text = copyIcon(currentIcon);
-	text.setText("Timings for " + icon.getText());
-	text.setTranslation(-sW/4 + 600, sH/4);
-	text.setBgColor([1,1,1,0.7]);
-	schedule.addChild(icon);
-	schedule.addChild(text);
+	buildSchedule(currentText)
 }
 
-function copyIcon(icon) {
+function buildSchedule(key) {
 
-	var copy = new Blippar.Text();
-	copy.setName("schedule_"+icon.getName())
-		.setText(icon.getText())
+	var scheduleItem;
+	for (var i = 0; i < scene.data.length; i++) {
+		if (scene.data[i].name === key) {
+			scheduleItem = scene.data[i];
+			break;
+		}
+	}
+
+	var schedule = scene.addChild("Node", "schedule");
+	for (var i = 0; i < scheduleItem.times.length; i++) {
+		var icon = buildIcon(scheduleItem.times[i].route_short_name, scheduleItem.times[i].route_color);
+		icon.setTranslation(-sW/4, sH/2 - 300 * (i+1));
+		var text = buildIcon(scheduleItem.times[i].arrival_time, scheduleItem.times[i].route_color);
+		text.setTranslation(-sW/4 + 600, sH/2 - 300 * (i+1));
+		text.setBgColor([1,1,1,0.7]);
+		schedule.addChild(icon);
+		schedule.addChild(text);
+	}
+}
+
+function buildIcon(text, color) {
+	console.log(text);
+	var color = hexToRgb("#"+color);
+	var icon = new Blippar.Text();
+	icon.setName(text)
+		.setText(text)
 		.setRotation(0,0,0)
-		.setFontSize(icon.getFontSize())
-		.setCornerRadius(icon.getCornerRadius())
-		.setBgColor(icon.getBgColor())
-		.setTextMargins(icon.getTextMargins())
+		.setFontSize(24)
+		.setCornerRadius(10)
+		.setBgColor([color.r, color.g, color.b, 1])
+		.setTextMargins([20, 5])
 		.setScale(3);
 
-	return copy;
+	return icon;
 }
 
 PngWebServiceCall = function(lat, lon, callback) {
@@ -182,14 +197,20 @@ PngWebServiceCall = function(lat, lon, callback) {
 
 ParseResult = function(json, callback) {
 	console.log(json.response.metadata.scriptLog[0].message);
-	callback(json);
+	callback(json.response.result.data);
 }
 
 function hexToRgb(hex) {
-    var bigint = parseInt(hex, 16);
-    var r = (bigint >> 16) & 255;
-    var g = (bigint >> 8) & 255;
-    var b = bigint & 255;
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
 
-    return [r,g,b, 1];
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16)/255,
+        g: parseInt(result[2], 16)/255,
+        b: parseInt(result[3], 16)/255
+    } : null;
 }
