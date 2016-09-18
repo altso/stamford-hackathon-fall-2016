@@ -11,11 +11,7 @@ var sH    = blipp.getScreenHeight() * 1.003;
 
 // Scene creation
 scene.onCreate = function() {
-    var Plane = scene.addSprite().setColor('#ffff00').setScale(500);
-	scene.addText('Test3')
-		 .setFontSize(72)
-		 .setTranslationY(400);
-		 
+
 	scene.screen = scene.getChild("Screen");
 	scene.leftHotspot = scene.screen.getChild("LeftHotspot");
 	scene.rightHotspot = scene.screen.getChild("RightHotspot");
@@ -27,7 +23,6 @@ scene.onCreate = function() {
 
 	//ICONS 
 	scene.icons = getIcons(iconCount);
-	scene.currentIconIndex = 1;
 
 	// Adjust position and size of the far end icons
 	//scene.icons[0].setTranslationX(-1.7 * iconPosX);//.setScale(sW/12);
@@ -40,21 +35,6 @@ scene.onCreate = function() {
 	
 	scene.rightHotspot.setTranslation(1.3 * sW/4, iconPosY, 0).setScale(sW/2);
 	scene.rightHotspot.onTouchEnd = function(id, x, y) { iconsShift('right'); }
-	
-	var logo = scene.addSprite("15.jpg")
-					.setName("logo")
-					.setTranslation(0, 0, 1);
-
-	logo.onCreate = function()
-	{
-		animateLogo(this);
-	}
-
-	logo.onTouchEnd = function(id, x, y)
-	{
-    	PngWebServiceCall(Math.round(Math.random() * 10) + 1, ParseResult);
-	    console.log("Touched on : " + this.getName());
-	}
 }
 
 scene.onShow = function()
@@ -67,15 +47,6 @@ scene.onShow = function()
 
 }
 
-animateLogo = function(node)
-{
-	var anim = node.animate().translationX(0).rotationZ(3600).scaleX(580).scaleY(580).delay(500).duration(5000);
-	anim.interpolate = function(value)
-	{
-		return Math.sqrt(value);
-	}
-}
-
 function getIcons(count) {
 
     var iconPosX = (sW / (count - 1));
@@ -83,8 +54,9 @@ function getIcons(count) {
 	icons = []
 	biggestIconIdx = parseInt(count / 2, 10);
 	for (i = 0; i < count; i++) {
-		var icon = scene.screen.addText('31'+i)
-						.setName("icon_"+i)
+		var name = '31'+i;
+		var icon = scene.screen.addText(name)
+						.setName(name)
 						.setRotation(0,0,0)
 						.setTranslation(iconPosX * (i-2), iconPosY, 0)
 						.setFontSize(24)
@@ -95,6 +67,8 @@ function getIcons(count) {
 		
 		icons.push(icon);
 	}
+
+	scene.currentIconIndex = biggestIconIdx;
 
 	return icons;
 }
@@ -113,11 +87,11 @@ function iconsShift(direction) {
 	scene.rightHotspot.setClickable(false);
 
 	// Shift the current iconIndex
-	if (direction === 'left') {
-		scene.currentIconIndex = modulus(scene.currentIconIndex + 1, iconsCount);
-	} else {
-		scene.currentIconIndex = modulus(scene.currentIconIndex - 1, iconsCount);
-	}
+// 	if (direction === 'left') {
+// 		scene.currentIconIndex = modulus(scene.currentIconIndex + 1, iconsCount);
+// 	} else {
+// 		scene.currentIconIndex = modulus(scene.currentIconIndex - 1, iconsCount);
+// 	}
 
 	// Rotate the icons array
 	var shiftedIcons = arrayRotate(scene.icons, direction);
@@ -129,16 +103,8 @@ function iconsShift(direction) {
 		// Determine the target index
 		if (direction === 'left') {
 			targetIndex  = modulus (i - 1, iconsCount);
-// 			if (targetIndex == (iconsCount - 1)) {
-// 				textureIndex = modulus(scene.icons[targetIndex].getActiveTexture() + 1, locationsCount);
-// 				scene.icons[i].setActiveTexture(textureIndex);
-// 			}
 		} else {
 			targetIndex  = modulus (i + 1, iconsCount);
-// 			if (targetIndex == 0) {
-// 				textureIndex = modulus(scene.icons[targetIndex].getActiveTexture() - 1, locationsCount);
-// 				scene.icons[i].setActiveTexture(textureIndex);
-// 			}
 		}
 
 		// Animate the icon position, scale and alpha
@@ -153,6 +119,7 @@ function iconsShift(direction) {
 	scene.icons = shiftedIcons;
 	
 	// DO STUFF HERE
+	updateSchedule();
 
 	// Unlock the sensors
 	scene.animate().delay(animDuration).onEnd = function() {
@@ -173,6 +140,39 @@ function arrayRotate(array, direction) {
   		array.unshift(array.pop());
   	}
   	return array;
+}
+
+function updateSchedule() {
+
+	if(scene.getChild("schedule"))
+		scene.getChild("schedule").destroy();
+
+	var currentIcon = scene.icons[scene.currentIconIndex];
+
+	var schedule = scene.addChild("Node", "schedule");
+	var icon = copyIcon(currentIcon);
+	icon.setTranslation(-sW/4, sH/4);
+	var text = copyIcon(currentIcon);
+	text.setText("Timings for " + icon.getText());
+	text.setTranslation(-sW/4 + 600, sH/4);
+	text.setBgColor([1,1,1,0.7]);
+	schedule.addChild(icon);
+	schedule.addChild(text);
+}
+
+function copyIcon(icon) {
+
+	var copy = new Blippar.Text();
+	copy.setName("schedule_"+icon.getName())
+		.setText(icon.getText())
+		.setRotation(0,0,0)
+		.setFontSize(icon.getFontSize())
+		.setCornerRadius(icon.getCornerRadius())
+		.setBgColor(icon.getBgColor())
+		.setTextMargins(icon.getTextMargins())
+		.setScale(3);
+
+	return copy;
 }
 
 PngWebServiceCall = function(value, callback) {
@@ -199,4 +199,4 @@ ParseResult = function(json) {
 	scene.addText(json.response.result.data)
 		 .setFontSize(72)
 		 .setTranslationY(-500);  	
-}
+} 
