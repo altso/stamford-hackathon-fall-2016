@@ -1,20 +1,26 @@
 (function (root, factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
+      console.log("1");
         // AMD
         define(['babyparse'], factory);
     } else if (typeof exports === 'object') {
-        // CommonJS
+           console.log("2");
+   // CommonJS
         module.exports = factory(require('babyparse'));
+    } else if (typeof require === 'function') {
+      // scriptr
+        root.Timetable = factory(require('babyparse.js').Baby, require("document"));
+      
     } else {
-        // Browser globals (Note: root is window)
+
+          console.log(root);
+    // Browser globals (Note: root is window)
         root.Timetable = factory(root.Baby);
     }
-} (this, function (baby) {
-    var state = {};
-
-    function loadData(stops, stop_times, trips, routes) {
-        var i, options = { header: true, dynamicTyping: true };
+} (this, function (baby, document) {
+	function loadData(stops, stop_times, trips, routes) {
+        var i, len, options = { header: true, dynamicTyping: true }, state = {};
 
         // stops
         state.stops = baby.parse(stops, options).data;
@@ -24,24 +30,16 @@
 
         // trips
         var trips = baby.parse(trips, options).data;
-        var tripMap = {}, trip;
-        for (i = 0, len = trips.length; i < len; i++) {
-            trip = trips[i];
-            tripMap[trip.trip_id] = trip;
-        }
-        state.trips = tripMap;
+        state.trips = trips;
 
         // routes
         var routes = baby.parse(routes, options).data;
-        var routeMap = {}, route;
-        for (i = 0, len = routes.length; i < len; i++) {
-            route = routes[i];
-            routeMap[route.route_id] = route;
-        }
-        state.routes = routeMap;
+        state.routes = routes;
+      
+      return state;
     }
 
-    function getNextRoutes(lat, lon, count, now) {
+    function getNextRoutes(state, lat, lon, count, now) {
         // defaults
         count = count || 5;
         now = now || new Date();
@@ -49,17 +47,31 @@
         var now_time = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var stop = getClosestStop(lat, lon, state.stops);
         var times = getNextTimes(stop.stop_id, now_time, state.stop_times, count);
-        var result = [], time, trip;
+        var result = [], time, trip, route;
         for (var i = 0, len = times.length; i < len; i++) {
             time = times[i];
-            trip = state.trips[time.trip_id];
+            trip = findTrip(state.trips, time.trip_id);
+          route = findRoute(trip.route_id);
             result.push({
                 stop_time: time,
-                trip: state.trips[time.trip_id],
-                route: state.routes[trip.route_id]
+                trip: trip,
+                route: route
             })
         }
         return result;
+    }
+  
+    function findTrip(trips, trip_id) {
+              for (var i = 0, len = trips.length; i < len; i++) {
+                if (trips[i].trip_id === trip_id) return trips[i];
+              }
+      return null;
+    }
+    function findRoute(routes, route_id) {
+              for (var i = 0, len = routes.length; i < len; i++) {
+                if (routes[i].route_id === route_id) return routes[i];
+              }
+      return null;
     }
 
     function getDistance(latitude1, longitude1, latitude2, longitude2) {
@@ -95,7 +107,7 @@
     }
 
     function getNextTimes(stop_id, now_time, stop_times, count) {
-        var i, stop_time, prev_stop_time, start_index = -1, result = [];
+        var i, len, stop_time, prev_stop_time, start_index = -1, result = [];
         for (i = 0, len = stop_times.length; i < len; i++) {
             stop_time = stop_times[i];
             if (stop_time.stop_id === stop_id) {
@@ -130,6 +142,7 @@
 
     // Exposed public methods
     return {
+        version: 1,
         loadData: loadData,
         getNextRoutes: getNextRoutes
     }

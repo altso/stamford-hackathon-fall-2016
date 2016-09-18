@@ -9,9 +9,17 @@ var markerH = blipp.getMarker().getHeight();
 var sW    = blipp.getScreenWidth()  * 1.003;
 var sH    = blipp.getScreenHeight() * 1.003;
 
-// Scene creation
-scene.onCreate = function() {
+var JsonResult;
 
+// Scene creation
+scene.onCreate = function()  {
+	var lat = blipp.getGeo().getLat();
+	var lon = blipp.getGeo().getLon(); 
+
+	PngWebServiceCall(lat, lon, createScene);
+}
+
+createScene = function(json) {
 	scene.screen = scene.getChild("Screen");
 	scene.leftHotspot = scene.screen.getChild("LeftHotspot");
 	scene.rightHotspot = scene.screen.getChild("RightHotspot");
@@ -24,27 +32,12 @@ scene.onCreate = function() {
 	//ICONS 
 	scene.icons = getIcons(iconCount);
 
-	// Adjust position and size of the far end icons
-	//scene.icons[0].setTranslationX(-1.7 * iconPosX);//.setScale(sW/12);
-	//scene.icons[iconCount-1].setTranslationX( 1.7 * iconPosX);//.setScale(sW/12);;
-
-
 	// Adjust hotspots position and scale and define their callback function
 	scene.leftHotspot.setTranslation(-1.3 * sW/4, iconPosY, 0).setScale(sW/2);
 	scene.leftHotspot.onTouchEnd = function(id, x, y) { iconsShift('left'); }
 	
 	scene.rightHotspot.setTranslation(1.3 * sW/4, iconPosY, 0).setScale(sW/2);
 	scene.rightHotspot.onTouchEnd = function(id, x, y) { iconsShift('right'); }
-}
-
-scene.onShow = function()
-{
-    console.log("Scene on show");
-	
-	var lat = blipp.getGeo().getLat();
-	var lon = blipp.getGeo().getLon();
-	console.log("Our coordinates: lat=" + lat + ", lon=" + lon);
-
 }
 
 function getIcons(count) {
@@ -85,13 +78,6 @@ function iconsShift(direction) {
 	// Lock the sensors during animation
 	scene.leftHotspot.setClickable(false);
 	scene.rightHotspot.setClickable(false);
-
-	// Shift the current iconIndex
-// 	if (direction === 'left') {
-// 		scene.currentIconIndex = modulus(scene.currentIconIndex + 1, iconsCount);
-// 	} else {
-// 		scene.currentIconIndex = modulus(scene.currentIconIndex - 1, iconsCount);
-// 	}
 
 	// Rotate the icons array
 	var shiftedIcons = arrayRotate(scene.icons, direction);
@@ -175,28 +161,35 @@ function copyIcon(icon) {
 	return copy;
 }
 
-PngWebServiceCall = function(value, callback) {
-	blipp.downloadAssets('https://api.scriptrapps.io/test.png?value=' + value,
-	['test.png'],
+PngWebServiceCall = function(lat, lon, callback) {
+	blipp.downloadAssets('https://api.scriptrapps.io/getByLocation.png?lat=' + lat + '&lon=' + lon,
+	['getByLocation.png'],
 	'get',
 	function (status, info) {
 		loaded = true;
 		if (status == 'OK') {
 			console.log('Download Done');
-			var json = blipp.loadJson('test.png', true);
+			var json = blipp.loadJson('getByLocation.png', true);
 			console.log("JSON: " + json);
-			console.log(json.response.result.data);
-			callback(json);
+			ParseResult(json, callback);
 		} else {
 			console.log('Loaded ' + info + ' %');
 		}
 	},
-	['Authorization', 'bearer UDc4QTA0NTdDMDpzY3JpcHRyOjk3RjU1MTFCRUUwMDQ0RTk0OUU1NEIwMUJBQjE0ODJE'],
+	['Authorization', 'bearer QzFGN0ZEMTQ4MjpzY3JpcHRyOkUyNDlBQjJGQTgzREUyMzNCRjVCODg2RDg1NzQ4NzRF'],
 	 true);	
 }
 
-ParseResult = function(json) {
-	scene.addText(json.response.result.data)
-		 .setFontSize(72)
-		 .setTranslationY(-500);  	
-} 
+ParseResult = function(json, callback) {
+	console.log(json.response.metadata.scriptLog[0].message);
+	callback(json);
+}
+
+function hexToRgb(hex) {
+    var bigint = parseInt(hex, 16);
+    var r = (bigint >> 16) & 255;
+    var g = (bigint >> 8) & 255;
+    var b = bigint & 255;
+
+    return [r,g,b, 1];
+}
