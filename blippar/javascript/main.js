@@ -154,7 +154,7 @@ function buildSchedule(key) {
 		icon.setTranslation(-sW/4, sH/2 - 300 * (i+1));
 		var text = buildIcon(scheduleItem.times[i].arrival_time, scheduleItem.times[i].route_color);
 		text.setTranslation(-sW/4 + 600, sH/2 - 300 * (i+1));
-		text.setBgColor([1,1,1,0.7]);
+		text.setBgColor([0,0,0,0.9]);
 		schedule.addChild(icon);
 		schedule.addChild(text);
 	}
