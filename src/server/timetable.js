@@ -1,20 +1,26 @@
 (function (root, factory) {
     "use strict";
     if (typeof define === 'function' && define.amd) {
+      console.log("1");
         // AMD
         define(['babyparse'], factory);
     } else if (typeof exports === 'object') {
-        // CommonJS
+           console.log("2");
+   // CommonJS
         module.exports = factory(require('babyparse'));
+    } else if (typeof require === 'function') {
+      // scriptr
+        root.Timetable = factory(require('babyparse.js').Baby, require("document"));
+      
     } else {
-        // Browser globals (Note: root is window)
+
+          console.log(root);
+    // Browser globals (Note: root is window)
         root.Timetable = factory(root.Baby);
     }
-} (this, function (baby) {
-    var state = {};
-
-    function loadData(stops, stop_times, trips, routes) {
-        var i, options = { header: true, dynamicTyping: true };
+} (this, function (baby, document) {
+	function loadData(stops, stop_times, trips, routes) {
+        var i, len, options = { header: true, dynamicTyping: true }, state = {};
 
         // stops
         state.stops = baby.parse(stops, options).data;
@@ -24,24 +30,16 @@
 
         // trips
         var trips = baby.parse(trips, options).data;
-        var tripMap = {}, trip;
-        for (i = 0, len = trips.length; i < len; i++) {
-            trip = trips[i];
-            tripMap[trip.trip_id] = trip;
-        }
-        state.trips = tripMap;
+        state.trips = trips;
 
         // routes
         var routes = baby.parse(routes, options).data;
-        var routeMap = {}, route;
-        for (i = 0, len = routes.length; i < len; i++) {
-            route = routes[i];
-            routeMap[route.route_id] = route;
-        }
-        state.routes = routeMap;
+        state.routes = routes;
+      
+      return state;
     }
 
-    function getNextRoutes(lat, lon, count, now) {
+    function getNextRoutes(state, lat, lon, count, now) {
         // defaults
         count = count || 5;
         now = now || new Date();
@@ -95,7 +93,7 @@
     }
 
     function getNextTimes(stop_id, now_time, stop_times, count) {
-        var i, stop_time, prev_stop_time, start_index = -1, result = [];
+        var i, len, stop_time, prev_stop_time, start_index = -1, result = [];
         for (i = 0, len = stop_times.length; i < len; i++) {
             stop_time = stop_times[i];
             if (stop_time.stop_id === stop_id) {
@@ -130,6 +128,7 @@
 
     // Exposed public methods
     return {
+        version: 1,
         loadData: loadData,
         getNextRoutes: getNextRoutes
     }
