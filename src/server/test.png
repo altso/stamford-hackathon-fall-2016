@@ -1,3 +1,4 @@
+var x = request.parameters["value"];
 return {
-  "data": 123
+  "data": x + "x" + x + "=" + (x * x)
 }
