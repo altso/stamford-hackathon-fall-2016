@@ -1,13 +1,5 @@
-var files = storage.global;
-
-for (var v in storage.global) {
-  console.log(v);
-}
-
-  storage.global.timetableData = {};
-//delete storage.global.timetableData;
-
 var x = request.parameters["value"];
 return {
-  "data": x + "x" + x + "=" + (x * x)
+  "data": x + "x" + x + "=" + (x * x),
+  "server_time": new Date().getHours()
 }

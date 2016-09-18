@@ -1,0 +1,75 @@
+var p = request.parameters;
+var lat = p["lat"];
+var lon = p["lon"];
+var count = p["count"] || 5;
+var now = new Date();
+var time = p["time"];
+if (time) {
+	var m = time.match(/(\d+)\:(\d+)\:(\d+)/i);
+	now.setHours(parseInt(m[1], 10));
+  	now.setMinutes(parseInt(m[2], 10));
+    now.setSeconds(parseInt(m[3], 10));
+}
+       var now_time = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+
+console.log(lat);
+console.log(lon);
+console.log(count);
+
+var data = storage.global["timetableData"];
+
+var timetable = require("timetable.js").Timetable;
+var state = timetable.loadData(data.stops, data.stop_times, data.trips, data.routes);
+
+//var result = timetable.getClosestStop(lat, lon, state.stops);
+var result = timetable.getNextRoutes(state, lat, lon, count, now);
+
+var uniqueRoutes = {
+  "All": result
+}, i, len, items;
+for (i = 0, len = result.length; i < len; i++) {
+  items = uniqueRoutes[result[i].route_short_name] || (uniqueRoutes[result[i].route_short_name] = []);
+  items.push(result[i]);
+}
+
+var groups = [], routes;
+for (var routeName in uniqueRoutes) {
+  routes = uniqueRoutes[routeName],
+  stripByTime(routes, now_time, count);
+  groups.push({
+    name: routeName,
+    route_color: routes.length === 0 || routeName === "All" ? "000000" : routes[0].route_color,
+    times: routes
+  });
+}
+  
+      function parseTime(time) {
+        if (time === undefined) return 0;
+        var m = time.match(/(\d+)\:(\d+)\:(\d+)/i);
+        return parseInt(m[1], 10) * 3600 + parseInt(m[2], 10) * 60 + parseInt(m[3], 10);
+    }
+  
+function stripByTime(result, now_time, count) {
+  var i, len, start_index
+        for (i = 0, len = result.length; i < len; i++) {
+            if (now_time > parseTime(result[i].arrival_time)) {
+                if (start_index < 0) {
+                    start_index = Math.max(0, i - 1);
+                }
+            }
+        }
+
+        if (start_index > 0) {
+            result.splice(0, start_index);
+        }
+        result.splice(count);
+  return result;
+}
+
+result.splice(10);
+
+return {
+  result: result,
+  data: groups
+}
