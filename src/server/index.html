@@ -13,10 +13,10 @@
         console.log(new Date());
         console.log(Timetable);
         $.when(
-            $.get("data/stops.txt"),
-            $.get("data/stop_times.txt"),
-            $.get("data/trips.txt"),
-            $.get("data/routes.txt"))
+            $.get("../../data/stops.txt"),
+            $.get("../../data/stop_times.txt"),
+            $.get("../../data/trips.txt"),
+            $.get("../../data/routes.txt"))
         .done(function(stops, stop_times, trips, routes) {
             Timetable.loadData(stops[0], stop_times[0], trips[0], routes[0]);
 
