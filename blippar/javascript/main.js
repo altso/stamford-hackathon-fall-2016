@@ -9,8 +9,17 @@ var markerH = blipp.getMarker().getHeight();
 var sW    = blipp.getScreenWidth()  * 1.003;
 var sH    = blipp.getScreenHeight() * 1.003;
 
+var JsonResult;
+
 // Scene creation
-scene.onCreate = function() {
+scene.onCreate = function()  {
+	var lat = blipp.getGeo().getLat();
+	var lon = blipp.getGeo().getLon(); 
+
+	PngWebServiceCall(lat, lon, createScene);
+}
+
+createScene = function(json) {
     var Plane = scene.addSprite().setColor('#ffff00').setScale(500);
 	scene.addText('Test3')
 		 .setFontSize(72)
@@ -41,31 +50,36 @@ scene.onCreate = function() {
 	scene.rightHotspot.setTranslation(1.3 * sW/4, iconPosY, 0).setScale(sW/2);
 	scene.rightHotspot.onTouchEnd = function(id, x, y) { iconsShift('right'); }
 	
-	var logo = scene.addSprite("15.jpg")
-					.setName("logo")
-					.setTranslation(0, 0, 1);
+	// var logo = scene.addSprite("15.jpg")
+	// 				.setName("logo")
+	// 				.setTranslation(0, 0, 1);
 
-	logo.onCreate = function()
-	{
-		animateLogo(this);
-	}
+	// logo.onCreate = function()
+	// {
+	// 	animateLogo(this);
+	// }
 
-	logo.onTouchEnd = function(id, x, y)
-	{
-    	PngWebServiceCall(Math.round(Math.random() * 10) + 1, ParseResult);
-	    console.log("Touched on : " + this.getName());
-	}
-}
-
-scene.onShow = function()
-{
-    console.log("Scene on show");
+	// logo.onTouchEnd = function(id, x, y)
+	// {
+	//     console.log("Scene on show");
 	
-	var lat = blipp.getGeo().getLat();
-	var lon = blipp.getGeo().getLon();
-	console.log("Our coordinates: lat=" + lat + ", lon=" + lon);
+	// 	var lat = blipp.getGeo().getLat();
+	// 	var lon = blipp.getGeo().getLon(); 
 
+	//     PngWebServiceCall(lat, lon, ParseResult);
+	//     console.log("Touched on : " + this.getName());
+	// }
 }
+
+// scene.onShow = function()
+// {
+//     console.log("Scene on show");
+	
+// 	var lat = blipp.getGeo().getLat();
+// 	var lon = blipp.getGeo().getLon();
+// 	console.log("Our coordinates: lat=" + lat + ", lon=" + lon);
+
+// }
 
 animateLogo = function(node)
 {
@@ -175,28 +189,26 @@ function arrayRotate(array, direction) {
   	return array;
 }
 
-PngWebServiceCall = function(value, callback) {
-	blipp.downloadAssets('https://api.scriptrapps.io/test.png?value=' + value,
-	['test.png'],
+PngWebServiceCall = function(lat, lon, callback) {
+	blipp.downloadAssets('https://api.scriptrapps.io/getByLocation.png?lat=' + lat + '&lon=' + lon,
+	['getByLocation.png'],
 	'get',
 	function (status, info) {
 		loaded = true;
 		if (status == 'OK') {
 			console.log('Download Done');
-			var json = blipp.loadJson('test.png', true);
+			var json = blipp.loadJson('getByLocation.png', true);
 			console.log("JSON: " + json);
-			console.log(json.response.result.data);
-			callback(json);
+			ParseResult(json, callback);
 		} else {
 			console.log('Loaded ' + info + ' %');
 		}
 	},
-	['Authorization', 'bearer UDc4QTA0NTdDMDpzY3JpcHRyOjk3RjU1MTFCRUUwMDQ0RTk0OUU1NEIwMUJBQjE0ODJE'],
+	['Authorization', 'bearer QzFGN0ZEMTQ4MjpzY3JpcHRyOkUyNDlBQjJGQTgzREUyMzNCRjVCODg2RDg1NzQ4NzRF'],
 	 true);	
 }
 
-ParseResult = function(json) {
-	scene.addText(json.response.result.data)
-		 .setFontSize(72)
-		 .setTranslationY(-500);  	
+ParseResult = function(json, callback) {
+	console.log(json.response.metadata.scriptLog[0].message);
+	callback(json);
 }
