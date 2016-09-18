@@ -162,7 +162,9 @@ function copyIcon(icon) {
 }
 
 PngWebServiceCall = function(lat, lon, callback) {
-	blipp.downloadAssets('https://api.scriptrapps.io/getByLocation.png?lat=' + lat + '&lon=' + lon,
+	var date = new Date();
+	console.log("Current time: " + 	hhmmss(date));
+	blipp.downloadAssets('https://api.scriptrapps.io/getByLocation.png?lat=' + lat + '&lon=' + lon,// + '&time=' + hhmmss(date),
 	['getByLocation.png'],
 	'get',
 	function (status, info) {
@@ -192,4 +194,15 @@ function hexToRgb(hex) {
     var b = bigint & 255;
 
     return [r,g,b, 1];
+}
+
+function hhmmss(d) {
+    hours = format_two_digits(d.getHours());
+    minutes = format_two_digits(d.getMinutes());
+    seconds = format_two_digits(d.getSeconds());
+    return hours + "-" + minutes + "-" + seconds;
+}
+
+function format_two_digits(n) {
+    return n < 10 ? '0' + n : n;
 }
