@@ -129,7 +129,7 @@ function arrayRotate(array, direction) {
 
 function updateSchedule() {
 
-	if(scene.getChild("schedule"))
+	if(scene.getChild("schedule", true))
 		scene.getChild("schedule").destroy();
 
 	var currentIcon = scene.icons[scene.currentIconIndex];
