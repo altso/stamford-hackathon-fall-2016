@@ -47,17 +47,31 @@
         var now_time = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         var stop = getClosestStop(lat, lon, state.stops);
         var times = getNextTimes(stop.stop_id, now_time, state.stop_times, count);
-        var result = [], time, trip;
+        var result = [], time, trip, route;
         for (var i = 0, len = times.length; i < len; i++) {
             time = times[i];
-            trip = state.trips[time.trip_id];
+            trip = findTrip(state.trips, time.trip_id);
+          route = findRoute(trip.route_id);
             result.push({
                 stop_time: time,
-                trip: state.trips[time.trip_id],
-                route: state.routes[trip.route_id]
+                trip: trip,
+                route: route
             })
         }
         return result;
+    }
+  
+    function findTrip(trips, trip_id) {
+              for (var i = 0, len = trips.length; i < len; i++) {
+                if (trips[i].trip_id === trip_id) return trips[i];
+              }
+      return null;
+    }
+    function findRoute(routes, route_id) {
+              for (var i = 0, len = routes.length; i < len; i++) {
+                if (routes[i].route_id === route_id) return routes[i];
+              }
+      return null;
     }
 
     function getDistance(latitude1, longitude1, latitude2, longitude2) {
