@@ -1,0 +1,31 @@
+<html>
+
+<head>
+    <title>Test Page</title>
+</head>
+
+<body>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script type="text/javascript" src="babyparse.js"></script>
+    <script type="text/javascript" src="timetable.js"></script>
+    <script type="text/javascript">
+    (function(Timetable) {
+        console.log(new Date());
+        console.log(Timetable);
+        $.when(
+            $.get("data/stops.txt"),
+            $.get("data/stop_times.txt"),
+            $.get("data/trips.txt"),
+            $.get("data/routes.txt"))
+        .done(function(stops, stop_times, trips, routes) {
+            Timetable.loadData(stops[0], stop_times[0], trips[0], routes[0]);
+
+            var result = Timetable.getNextRoutes(41.0509907, -73.5382678, 5, new Date(2016, 9, 15, 12, 0, 0));
+            console.log("Done", new Date(), result);
+        });
+        
+    })(Timetable);
+    </script>
+</body>
+
+</html>
