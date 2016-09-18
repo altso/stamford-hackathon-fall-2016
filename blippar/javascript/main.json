@@ -1,0 +1,42 @@
+{
+    "fileInfo": {
+        "jsAPIVersion": "1.2.27"
+    },
+    "title": "ZHOPA ZHOPA",
+    "shortTitle": "ZHOPA",
+    "children": [
+        {
+            "className": "Scene",
+            "name": "default",
+            "children": [
+		         {
+		            "className": "Space",
+		            "attachment": "screen",
+		            "name": "Screen",
+		            "children": [
+		                {
+                            "className": "Sprite",
+                            "name": "LeftHotspot",
+                            "type": "sensor", 
+                            "translation": [0, 0, 0],
+                            "rotation": [0, 0, 0],
+                            "scale": [1, 1, 1],
+                            "color": [1, 0, 0],
+                            "clickable": true
+                        },
+						{
+                            "className": "Sprite",
+                            "name": "RightHotspot",
+                            "type": "sensor", 
+                            "translation": [0, 0, 0],
+                            "rotation": [0, 0, 0],
+                            "scale": [1, 1, 1],
+                            "color": [0, 1, 0],
+                            "clickable": true
+                        }
+		            ]
+		         }
+            ]  
+        }
+    ]
+}
