@@ -1,0 +1,21 @@
+route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
+1411,,311,Port Chester,,3,,800000,FFFFFF
+1413,,313,West Broad Street,,3,,C10000,FFFFFF
+1414,,321,West Avenue,,3,,FF5959,FFFFFF
+4273,,324,Fairfield Avenues,,3,,7DC181,FFFFFF
+4274,,326,Pacific Street,,3,,6B52AD,FFFFFF
+8545,,327,Shippan Avenue,,3,,000000,FFFFFF
+1417,,331,High Ridge Road,,3,,0000FF,FFFFFF
+1418,,336,Long Ridge Road,,3,,00FFFF,FFFFFF
+1419,,333,Newfield Avenue,,3,,008080,FFFFFF
+1420,,334,Hope Street,,3,,000080,FFFFFF
+1421,,341,Norwalk,,3,,FF8000,FFFFFF
+8547,,342,East Main Street,,3,,808000,FFFFFF
+1423,,328,Cove Road,,3,,F2AD0D,FFFFFF
+3000,,345,NCC Flyer,,3,,153AEA,FFFFFF
+1426,,CCC,Commuter Connection Central,,3,,FF0000,FFFFFF
+1410,,I-Bus,Express Interstate Connection,,3,,FF0000,FFFFFF
+8544,,312,West Main Street,,3,,FA6D05,FFFFFF
+8546,,335,Washington Avenue,,3,,0000A0,FFFFFF
+1422,,344, Glenbrook Road,,3,,804040,FFFFFF
+

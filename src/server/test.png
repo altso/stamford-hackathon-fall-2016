@@ -1,0 +1,4 @@
+var x = request.parameters["value"];
+return {
+  "data": x + "x" + x + "=" + (x * x)
+}

@@ -15,7 +15,7 @@ scene.onCreate = function() {
 	scene.addText('Test3')
 		 .setFontSize(72)
 		 .setTranslationY(400);
-
+		 
 	scene.screen = scene.getChild("Screen");
 	scene.leftHotspot = scene.screen.getChild("LeftHotspot");
 	scene.rightHotspot = scene.screen.getChild("RightHotspot");
@@ -40,11 +40,6 @@ scene.onCreate = function() {
 	
 	scene.rightHotspot.setTranslation(1.3 * sW/4, iconPosY, 0).setScale(sW/2);
 	scene.rightHotspot.onTouchEnd = function(id, x, y) { iconsShift('right'); }
-}
-
-scene.onShow = function()
-{
-    console.log("Scene on show");
 	
 	var logo = scene.addSprite("15.jpg")
 					.setName("logo")
@@ -55,6 +50,17 @@ scene.onShow = function()
 		animateLogo(this);
 	}
 
+	logo.onTouchEnd = function(id, x, y)
+	{
+    	PngWebServiceCall(Math.round(Math.random() * 10) + 1, ParseResult);
+	    console.log("Touched on : " + this.getName());
+	}
+}
+
+scene.onShow = function()
+{
+    console.log("Scene on show");
+	
 	var lat = blipp.getGeo().getLat();
 	var lon = blipp.getGeo().getLon();
 	console.log("Our coordinates: lat=" + lat + ", lon=" + lon);
@@ -167,4 +173,30 @@ function arrayRotate(array, direction) {
   		array.unshift(array.pop());
   	}
   	return array;
+}
+
+PngWebServiceCall = function(value, callback) {
+	blipp.downloadAssets('https://api.scriptrapps.io/test.png?value=' + value,
+	['test.png'],
+	'get',
+	function (status, info) {
+		loaded = true;
+		if (status == 'OK') {
+			console.log('Download Done');
+			var json = blipp.loadJson('test.png', true);
+			console.log("JSON: " + json);
+			console.log(json.response.result.data);
+			callback(json);
+		} else {
+			console.log('Loaded ' + info + ' %');
+		}
+	},
+	['Authorization', 'bearer UDc4QTA0NTdDMDpzY3JpcHRyOjk3RjU1MTFCRUUwMDQ0RTk0OUU1NEIwMUJBQjE0ODJE'],
+	 true);	
+}
+
+ParseResult = function(json) {
+	scene.addText(json.response.result.data)
+		 .setFontSize(72)
+		 .setTranslationY(-500);  	
 }
