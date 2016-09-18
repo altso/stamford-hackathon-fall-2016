@@ -1,2 +1,0 @@
-agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone
-,CTTransit- Stamford,http://www.cttransit.com,America/New_York,en,203-327-7433
